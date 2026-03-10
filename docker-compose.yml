@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: hospital-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: hms
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - hospital-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hospital-backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/hms
+      JWT_ACCESS_SECRET: replace_with_a_long_random_access_secret
+      JWT_REFRESH_SECRET: replace_with_a_long_random_refresh_secret
+      FIREBASE_CREDENTIALS_PATH: ./firebase-key.json
+      PROJECT_ID: hospital-management-syst-7bcb3
+      BREVO_API_KEY: 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
+      BREVO_FROM_EMAIL: noreply@brevo.com
+      OTP_EXPIRY: 5
+    depends_on:
+      - mongo
+    volumes:
+      - ./backend/firebase-key.json:/app/firebase-key.json:ro
+    networks:
+      - hospital-network
+    stdin_open: true
+    tty: true
+
+volumes:
+  mongo_data:
+
+networks:
+  hospital-network:
+    driver: bridge
