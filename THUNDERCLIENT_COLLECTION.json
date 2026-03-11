@@ -1,0 +1,358 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Hospital Management System - Complete API Test Suite",
+  "dateExported": "2026-03-11T18:30:00Z",
+  "version": "1.1",
+  "folders": [
+    {
+      "_id": "auth",
+      "name": "Authentication",
+      "requests": [
+        {
+          "_id": "auth_signup",
+          "name": "Signup",
+          "method": "POST",
+          "url": "http://localhost:5000/api/auth/signup",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPass123!\",\n  \"name\": \"Test User\",\n  \"phone\": \"9876543210\",\n  \"role\": \"SUPER_ADMIN\"\n}"
+          }
+        },
+        {
+          "_id": "auth_verify_otp",
+          "name": "Verify OTP",
+          "method": "POST",
+          "url": "http://localhost:5000/api/auth/verify-otp",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"otp\": \"123456\"\n}"
+          }
+        },
+        {
+          "_id": "auth_login",
+          "name": "Login",
+          "method": "POST",
+          "url": "http://localhost:5000/api/auth/login",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"TestPass123!\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "hospitals",
+      "name": "Hospitals",
+      "requests": [
+        {
+          "_id": "hospital_create",
+          "name": "Create Hospital",
+          "method": "POST",
+          "url": "http://localhost:5000/api/hospitals",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"City General Hospital\",\n  \"address\": \"123 Main St\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"country\": \"USA\",\n  \"zipCode\": \"10001\",\n  \"phone\": \"2125551234\",\n  \"email\": \"info@cityhospital.com\"\n}"
+          }
+        },
+        {
+          "_id": "hospital_list",
+          "name": "List Hospitals",
+          "method": "GET",
+          "url": "http://localhost:5000/api/hospitals?page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        },
+        {
+          "_id": "hospital_get",
+          "name": "Get Hospital by ID",
+          "method": "GET",
+          "url": "http://localhost:5000/api/hospitals/:hospitalId",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "departments",
+      "name": "Departments",
+      "requests": [
+        {
+          "_id": "dept_create",
+          "name": "Create Department",
+          "method": "POST",
+          "url": "http://localhost:5000/api/departments",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Cardiology\",\n  \"description\": \"Heart and cardiovascular diseases\",\n  \"hospitalId\": \"HOSPITAL_ID\"\n}"
+          }
+        },
+        {
+          "_id": "dept_list",
+          "name": "List Departments",
+          "method": "GET",
+          "url": "http://localhost:5000/api/departments?hospitalId=HOSPITAL_ID&page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "doctors",
+      "name": "Doctors",
+      "requests": [
+        {
+          "_id": "doctor_create",
+          "name": "Create Doctor",
+          "method": "POST",
+          "url": "http://localhost:5000/api/doctors",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Dr. John Smith\",\n  \"email\": \"john.smith@hospital.com\",\n  \"phone\": \"9876543210\",\n  \"specialization\": \"Cardiology\",\n  \"qualifications\": \"MD, Cardiology Specialist\",\n  \"experience\": 15,\n  \"consultationFee\": 500,\n  \"departmentId\": \"DEPARTMENT_ID\",\n  \"hospitalId\": \"HOSPITAL_ID\"\n}"
+          }
+        },
+        {
+          "_id": "doctor_list",
+          "name": "List Doctors",
+          "method": "GET",
+          "url": "http://localhost:5000/api/doctors?hospitalId=HOSPITAL_ID&departmentId=DEPT_ID&page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "patients",
+      "name": "Patients",
+      "requests": [
+        {
+          "_id": "patient_create",
+          "name": "Create Patient",
+          "method": "POST",
+          "url": "http://localhost:5000/api/patients",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane@example.com\",\n  \"phone\": \"9876543210\",\n  \"age\": 35,\n  \"gender\": \"FEMALE\",\n  \"bloodType\": \"O+\",\n  \"address\": \"456 Oak Ave\",\n  \"city\": \"New York\",\n  \"hospitalId\": \"HOSPITAL_ID\"\n}"
+          }
+        },
+        {
+          "_id": "patient_list",
+          "name": "List Patients",
+          "method": "GET",
+          "url": "http://localhost:5000/api/patients?hospitalId=HOSPITAL_ID&page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "appointments",
+      "name": "Appointments",
+      "requests": [
+        {
+          "_id": "appoint_create",
+          "name": "Create Appointment",
+          "method": "POST",
+          "url": "http://localhost:5000/api/appointments",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"patientId\": \"PATIENT_ID\",\n  \"doctorId\": \"DOCTOR_ID\",\n  \"appointmentDate\": \"2026-03-20T10:00:00Z\",\n  \"reason\": \"Heart checkup\",\n  \"hospitalId\": \"HOSPITAL_ID\"\n}"
+          }
+        },
+        {
+          "_id": "appoint_list",
+          "name": "List Appointments",
+          "method": "GET",
+          "url": "http://localhost:5000/api/appointments?page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "beds",
+      "name": "Beds & Rooms",
+      "requests": [
+        {
+          "_id": "room_create",
+          "name": "Create Room",
+          "method": "POST",
+          "url": "http://localhost:5000/api/rooms",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"roomNumber\": \"101\",\n  \"roomType\": \"GENERAL\",\n  \"wardId\": \"WARD_ID\",\n  \"hospitalId\": \"HOSPITAL_ID\"\n}"
+          }
+        },
+        {
+          "_id": "bed_create",
+          "name": "Create Bed",
+          "method": "POST",
+          "url": "http://localhost:5000/api/beds",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"bedNumber\": \"101-A\",\n  \"roomId\": \"ROOM_ID\",\n  \"status\": \"AVAILABLE\",\n  \"hospitalId\": \"HOSPITAL_ID\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "admissions",
+      "name": "Admissions",
+      "requests": [
+        {
+          "_id": "admission_create",
+          "name": "Create Admission",
+          "method": "POST",
+          "url": "http://localhost:5000/api/admissions",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"patientId\": \"PATIENT_ID\",\n  \"doctorId\": \"DOCTOR_ID\",\n  \"bedId\": \"BED_ID\",\n  \"hospitalId\": \"HOSPITAL_ID\",\n  \"admissionDate\": \"2026-03-15T10:00:00Z\",\n  \"reason\": \"Surgery\"\n}"
+          }
+        },
+        {
+          "_id": "admission_list",
+          "name": "List Admissions",
+          "method": "GET",
+          "url": "http://localhost:5000/api/admissions?page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "billing",
+      "name": "Billing & Payments",
+      "requests": [
+        {
+          "_id": "billing_create",
+          "name": "Create Billing",
+          "method": "POST",
+          "url": "http://localhost:5000/api/billings",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"patientId\": \"PATIENT_ID\",\n  \"amount\": 5000,\n  \"description\": \"Surgery charges\",\n  \"status\": \"PENDING\"\n}"
+          }
+        },
+        {
+          "_id": "payment_create",
+          "name": "Create Payment",
+          "method": "POST",
+          "url": "http://localhost:5000/api/payments",
+          "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"billingId\": \"BILLING_ID\",\n  \"amount\": 5000,\n  \"paymentMethod\": \"CARD\",\n  \"transactionId\": \"TXN123456\"\n}"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "dashboard",
+      "name": "Dashboard & Analytics",
+      "requests": [
+        {
+          "_id": "dashboard_stats",
+          "name": "Get Dashboard Stats",
+          "method": "GET",
+          "url": "http://localhost:5000/api/dashboard?hospitalId=HOSPITAL_ID",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "audit",
+      "name": "Audit Logs",
+      "requests": [
+        {
+          "_id": "audit_list",
+          "name": "List Audit Logs",
+          "method": "GET",
+          "url": "http://localhost:5000/api/audit-logs?page=1&limit=10",
+          "headers": {
+            "Authorization": "Bearer YOUR_TOKEN_HERE"
+          }
+        }
+      ]
+    },
+    {
+      "_id": "health",
+      "name": "Health Checks",
+      "requests": [
+        {
+          "_id": "health_general",
+          "name": "General Health Check",
+          "method": "GET",
+          "url": "http://localhost:5000/health"
+        },
+        {
+          "_id": "health_api",
+          "name": "API Health Check",
+          "method": "GET",
+          "url": "http://localhost:5000/api/health"
+        },
+        {
+          "_id": "ready_check",
+          "name": "Readiness Check",
+          "method": "GET",
+          "url": "http://localhost:5000/api/ready"
+        }
+      ]
+    }
+  ]
+}
