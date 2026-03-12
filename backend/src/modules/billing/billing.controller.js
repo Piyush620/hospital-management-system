@@ -11,8 +11,7 @@ exports.createBill = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      billing,
-      bill: billing
+      billing
     });
 
   } catch (err) {

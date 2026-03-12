@@ -1,4 +1,5 @@
 const Department = require("../../models/department.model");
+const Hospital = require("../../models/hospital.model");
 const ApiError = require("../../errors/ApiError");
 const { logAction } = require("../../utils/auditLogger");
 
@@ -11,6 +12,15 @@ const createDepartment = async (data, userId) => {
 
   if (!data.hospitalId) {
     throw new ApiError(400, "Hospital ID is required");
+  }
+
+  const hospital = await Hospital.findOne({
+    _id: data.hospitalId,
+    isDeleted: false
+  });
+
+  if (!hospital) {
+    throw new ApiError(404, "Hospital not found");
   }
 
   const department = await Department.create({

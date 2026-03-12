@@ -88,7 +88,7 @@ exports.deleteAppointment = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: "Appointment cancelled"
+      message: "Appointment deleted"
     });
 
   } catch (err) {

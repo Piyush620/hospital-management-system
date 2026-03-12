@@ -1,5 +1,8 @@
 const Admission = require("../../models/admission.model");
 const Bed = require("../../models/bed.model");
+const Patient = require("../../models/patient.model");
+const Doctor = require("../../models/doctor.model");
+const Hospital = require("../../models/hospital.model");
 const ApiError = require("../../errors/ApiError");
 const { logAction } = require("../../utils/auditLogger");
 const { validateAdmissionCreate } = require("../../utils/validators");
@@ -7,10 +10,51 @@ const { validateAdmissionCreate } = require("../../utils/validators");
 const createAdmission = async (data, userId) => {
   validateAdmissionCreate(data);
 
-  const bed = await Bed.findById(data.bedId);
+  const [hospital, patient, doctor, bed] = await Promise.all([
+    Hospital.findOne({
+      _id: data.hospitalId,
+      isDeleted: false
+    }),
+    Patient.findOne({
+      _id: data.patientId,
+      isDeleted: false
+    }),
+    Doctor.findOne({
+      _id: data.doctorId,
+      isDeleted: false
+    }),
+    Bed.findOne({
+      _id: data.bedId,
+      isDeleted: false
+    })
+  ]);
+
+  if (!hospital) {
+    throw new ApiError(404, "Hospital not found");
+  }
+
+  if (!patient) {
+    throw new ApiError(404, "Patient not found");
+  }
+
+  if (!doctor) {
+    throw new ApiError(404, "Doctor not found");
+  }
 
   if (!bed) {
     throw new ApiError(404, "Bed not found");
+  }
+
+  if (String(patient.hospitalId) !== String(data.hospitalId)) {
+    throw new ApiError(400, "Patient does not belong to hospital");
+  }
+
+  if (String(doctor.hospitalId) !== String(data.hospitalId)) {
+    throw new ApiError(400, "Doctor does not belong to hospital");
+  }
+
+  if (String(bed.hospitalId) !== String(data.hospitalId)) {
+    throw new ApiError(400, "Bed does not belong to hospital");
   }
 
   if (bed.status === "OCCUPIED") {

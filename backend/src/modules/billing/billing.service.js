@@ -1,4 +1,5 @@
 const Billing = require("../../models/billing.model");
+const Admission = require("../../models/admission.model");
 const ApiError = require("../../errors/ApiError");
 const { logAction } = require("../../utils/auditLogger");
 const { validateBillingCreate } = require("../../utils/validators");
@@ -6,6 +7,15 @@ const { validateBillingCreate } = require("../../utils/validators");
 
 exports.createBill = async (data, userId) => {
   validateBillingCreate(data);
+
+  const admission = await Admission.findOne({
+    _id: data.admissionId,
+    isDeleted: false
+  });
+
+  if (!admission) {
+    throw new ApiError(404, "Admission not found");
+  }
 
   const bill = await Billing.create({
     ...data,

@@ -18,6 +18,12 @@ exports.getStats = async () => {
 
   const revenue = await Billing.aggregate([
     {
+      $match: {
+        status: "PAID",
+        isDeleted: false
+      }
+    },
+    {
       $group: {
         _id: null,
         totalRevenue: { $sum: "$amount" }

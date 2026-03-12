@@ -1,0 +1,43 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Backend env files
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Dependency and build output
+node_modules/
+backend/node_modules/
+dist/
+build/
+coverage/
+backend/coverage/
+
+# Local caches and logs
+.npm-cache/
+backend/.npm-cache/
+*.log
+npm-debug.log*
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+
+# Secrets and credentials
+firebase-key.json
+firebase-key-*.json
+backend/firebase-key.json
+backend/firebase-key-*.json
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.secret
+secrets/
+
+# Local Docker overrides
+docker-compose.override.yml

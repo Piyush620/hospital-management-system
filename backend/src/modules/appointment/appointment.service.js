@@ -69,6 +69,7 @@ exports.getDoctorAppointments = async (doctorId) => {
       isDeleted: false
     })
     .populate("patientId")
+    .populate("doctorId")
     .populate("departmentId")
     .sort({ createdAt: -1 });
 };

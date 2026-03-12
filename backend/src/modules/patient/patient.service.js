@@ -1,4 +1,5 @@
 const Patient = require("../../models/patient.model");
+const Hospital = require("../../models/hospital.model");
 const ApiError = require("../../errors/ApiError");
 const { logAction } = require("../../utils/auditLogger");
 const { getPagination } = require("../../utils/pagination");
@@ -11,6 +12,15 @@ CREATE PATIENT
 
 exports.createPatient = async (data, userId) => {
   validatePatientCreate(data);
+
+  const hospital = await Hospital.findOne({
+    _id: data.hospitalId,
+    isDeleted: false
+  });
+
+  if (!hospital) {
+    throw new ApiError(404, "Hospital not found");
+  }
 
   const patient = await Patient.create({
     ...data,

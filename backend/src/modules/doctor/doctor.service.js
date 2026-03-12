@@ -1,4 +1,6 @@
 const Doctor = require("../../models/doctor.model");
+const Hospital = require("../../models/hospital.model");
+const Department = require("../../models/department.model");
 const ApiError = require("../../errors/ApiError");
 const { getPagination } = require("../../utils/pagination");
 const { logAction } = require("../../utils/auditLogger");
@@ -6,6 +8,29 @@ const { validateDoctorCreate } = require("../../utils/validators");
 
 const createDoctor = async (data, userId) => {
   validateDoctorCreate(data);
+
+  const [hospital, department] = await Promise.all([
+    Hospital.findOne({
+      _id: data.hospitalId,
+      isDeleted: false
+    }),
+    Department.findOne({
+      _id: data.departmentId,
+      isDeleted: false
+    })
+  ]);
+
+  if (!hospital) {
+    throw new ApiError(404, "Hospital not found");
+  }
+
+  if (!department) {
+    throw new ApiError(404, "Department not found");
+  }
+
+  if (String(department.hospitalId) !== String(data.hospitalId)) {
+    throw new ApiError(400, "Department does not belong to hospital");
+  }
 
   const doctor = await Doctor.create({
     ...data,

@@ -6,10 +6,17 @@ const { logAction } = require("../../utils/auditLogger");
 
 exports.createPayment = async (data, userId) => {
 
-  const bill = await Billing.findById(data.billingId);
+  const bill = await Billing.findOne({
+    _id: data.billingId,
+    isDeleted: false
+  });
 
   if (!bill) {
     throw new ApiError(404, "Billing record not found");
+  }
+
+  if (String(bill.hospitalId) !== String(data.hospitalId)) {
+    throw new ApiError(400, "Billing record does not belong to hospital");
   }
 
   const payment = await Payment.create({
@@ -35,6 +42,9 @@ exports.createPayment = async (data, userId) => {
 
 
 exports.getPayments = async (hospitalId) => {
+  if (!hospitalId) {
+    throw new ApiError(400, "Hospital ID required");
+  }
 
   return Payment
     .find({

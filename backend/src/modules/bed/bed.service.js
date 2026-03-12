@@ -1,4 +1,5 @@
 const Bed = require("../../models/bed.model");
+const Room = require("../../models/room.model");
 const ApiError = require("../../errors/ApiError");
 const { logAction } = require("../../utils/auditLogger");
 
@@ -7,6 +8,15 @@ exports.createBed = async (data, userId) => {
 
   if (!data.roomId || !data.hospitalId) {
     throw new ApiError(400, "Room and Hospital are required for bed creation");
+  }
+
+  const room = await Room.findOne({
+    _id: data.roomId,
+    isDeleted: false
+  });
+
+  if (!room) {
+    throw new ApiError(404, "Room not found");
   }
 
   const bed = await Bed.create({
