@@ -4,20 +4,16 @@ const User = require("../../models/user.model");
 const { generateAccessToken } = require("../../utils/jwt");
 
 const signup = async (req, res, next) => {
-
   try {
+    const { name, email, phone, password, role } = req.body;
 
-    const { name, email, password, role } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !password) {
+    if (!name || !email || !phone || !password) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, and password are required"
+        message: "Name, email, phone, and password are required"
       });
     }
 
-    // Validate role if provided
     const validRoles = ["SUPER_ADMIN", "HOSPITAL_ADMIN", "DOCTOR", "STAFF"];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({
@@ -33,21 +29,14 @@ const signup = async (req, res, next) => {
       message: result.message,
       data: null
     });
-
   } catch (err) {
     next(err);
   }
-
 };
 
-
-
 const login = async (req, res, next) => {
-
   try {
-
     const { email, password } = req.body;
-
     const data = await authService.login(email, password);
 
     res.json({
@@ -55,19 +44,13 @@ const login = async (req, res, next) => {
       message: "Login successful",
       data
     });
-
   } catch (err) {
     next(err);
   }
-
 };
 
-
-
 const verifyOtp = async (req, res, next) => {
-
   try {
-
     const { email, otp } = req.body;
 
     const result = await authService.verifyOtp(email, otp);
@@ -80,15 +63,13 @@ const verifyOtp = async (req, res, next) => {
         user: authService.sanitizeUser(updatedUser)
       }
     });
-
   } catch (err) {
     next(err);
   }
-
 };
+
 const refreshToken = async (req, res, next) => {
   try {
-
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
@@ -99,7 +80,6 @@ const refreshToken = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -118,7 +98,6 @@ const refreshToken = async (req, res, next) => {
         accessToken: newAccessToken
       }
     });
-
   } catch (err) {
     next(err);
   }
@@ -142,7 +121,6 @@ const resendOtp = async (req, res, next) => {
       message: result.message,
       data: null
     });
-
   } catch (err) {
     next(err);
   }

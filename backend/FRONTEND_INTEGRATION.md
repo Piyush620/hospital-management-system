@@ -11,7 +11,7 @@
 - Frontend code should treat `data` as the stable payload surface
 
 ## Core UI Workflow
-1. Signup -> OTP verification -> login
+1. Signup with email + phone -> SMS OTP verification -> login with email
 2. Create hospital
 3. Create department
 4. Create doctor

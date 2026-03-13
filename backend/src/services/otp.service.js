@@ -1,95 +1,210 @@
-/**
- * Send OTP via Brevo Email (Any Recipient, 300/day)
- */
-exports.sendOtpViaFirebase = async (email, otp) => {
-  const brevoApiKey = process.env.BREVO_API_KEY;
-  const brevoFromEmail = process.env.BREVO_FROM_EMAIL || "noreply@brevo.com";
+const SMS_MODE = process.env.SMS_PROVIDER || "console";
+const BREVO_SMS_ENDPOINT = "https://api.brevo.com/v3/transactionalSMS/send";
+const TWILIO_MESSAGES_ENDPOINT = (accountSid) =>
+  `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
 
-  // If Brevo is configured, send real email
-  if (brevoApiKey) {
-    try {
-      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: {
-          "api-key": brevoApiKey,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          sender: {
-            email: brevoFromEmail,
-            name: "Hospital Management System"
-          },
-          to: [
-            {
-              email: email
-            }
-          ],
-          subject: "Your Hospital Management System OTP",
-          htmlContent: `
-            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 20px auto;">
-              <h2 style="color: #2c3e50;">Hospital Management System</h2>
-              <p>Dear User,</p>
-              <p>Your One-Time Password (OTP) is:</p>
-              <div style="background-color: #ecf0f1; padding: 20px; text-align: center; margin: 20px 0; border-radius: 5px;">
-                <h1 style="color: #e74c3c; letter-spacing: 5px; margin: 0;">${otp}</h1>
-              </div>
-              <p><strong>Valid for 5 minutes</strong></p>
-              <p style="color: #7f8c8d; font-size: 12px;">
-                If you didn't request this code, please ignore this email.
-              </p>
-              <hr style="border: none; border-top: 1px solid #ecf0f1; margin: 20px 0;">
-              <p style="color: #95a5a6; font-size: 11px;">
-                (c) 2026 Hospital Management System. All rights reserved.
-              </p>
-            </div>
-          `
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        console.error("[Brevo Error]", result);
-        // Fallback to console if email fails
-        console.log(`[OTP][FALLBACK] ${email}: ${otp}`);
-        return { success: false, message: result?.message || "Failed to send email" };
-      }
-
-      console.log(`[OTP][EMAIL_SENT] to=${email} id=${result?.messageId || "n/a"}`);
-      console.log(`[OTP][CODE] ${otp} (Valid for 5 minutes)`);
-      return { success: true, message: "OTP sent successfully via email" };
-    } catch (error) {
-      console.error("[Brevo Error]", error.message);
-      // Fallback to console if email fails
-      console.log(`[OTP][FALLBACK] ${email}: ${otp}`);
-      return { success: false, message: error.message };
-    }
-  } else {
-    // Dev mode - log to console
-    console.log(`[OTP][DEV] ${email}: ${otp} (Valid for 5 minutes)`);
-    return { success: true, message: "OTP logged to console (dev mode)" };
+const maskPhone = (phone) => {
+  if (!phone) {
+    return "unknown";
   }
+
+  if (phone.length <= 4) {
+    return phone;
+  }
+
+  return `${"*".repeat(Math.max(0, phone.length - 4))}${phone.slice(-4)}`;
 };
 
-/**
- * Verify OTP (this happens in auth.service.js)
- * Just return true if OTP matches
- */
-exports.verifyOtpViaFirebase = async (email, otp, storedOtp) => {
-  if (String(otp) === String(storedOtp)) {
+const normalizePhone = (phone) => {
+  if (!phone) {
+    return "";
+  }
+
+  const trimmed = String(phone).trim();
+
+  if (trimmed.startsWith("+")) {
+    return `+${trimmed.slice(1).replace(/\D/g, "")}`;
+  }
+
+  return trimmed.replace(/\D/g, "");
+};
+
+const formatPhoneForLog = (phone) => {
+  return maskPhone(String(phone || ""));
+};
+
+const buildOtpMessage = (otp) => {
+  const expiryMinutes = Number(process.env.OTP_EXPIRY || 5);
+  return `PulseOps HMS OTP: ${otp}. Valid for ${expiryMinutes} minutes.`;
+};
+
+const sendViaBrevo = async (phone, otp) => {
+  const apiKey = process.env.BREVO_API_KEY;
+  const sender = process.env.BREVO_SMS_SENDER || "PulseOps";
+  const organisationPrefix = process.env.BREVO_SMS_ORGANISATION_PREFIX;
+  const recipient = normalizePhone(phone);
+
+  if (!apiKey) {
+    return { success: false, message: "BREVO_API_KEY is not configured" };
+  }
+
+  if (!sender || sender.length > 15) {
+    return { success: false, message: "BREVO_SMS_SENDER must be between 1 and 15 characters" };
+  }
+
+  if (!recipient) {
+    return { success: false, message: "Phone number is invalid for Brevo SMS delivery" };
+  }
+
+  const payload = {
+    sender,
+    recipient,
+    content: buildOtpMessage(otp),
+    type: "transactional"
+  };
+
+  if (organisationPrefix) {
+    payload.organisationPrefix = organisationPrefix;
+  }
+
+  const response = await fetch(BREVO_SMS_ENDPOINT, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "api-key": apiKey,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const rawBody = await response.text();
+  let data = null;
+
+  try {
+    data = rawBody ? JSON.parse(rawBody) : null;
+  } catch (error) {
+    data = rawBody;
+  }
+
+  if (!response.ok) {
+    const providerMessage =
+      data?.message ||
+      data?.code ||
+      (typeof data === "string" ? data : "Unknown Brevo error");
+
+    return {
+      success: false,
+      message: `Brevo SMS request failed (${response.status}): ${providerMessage}`
+    };
+  }
+
+  return {
+    success: true,
+    message: "OTP sent by SMS",
+    provider: "brevo",
+    messageId: data?.messageId || null
+  };
+};
+
+const sendViaTwilio = async (phone, otp) => {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+  const recipient = normalizePhone(phone);
+
+  if (!accountSid || !authToken) {
+    return { success: false, message: "Twilio credentials are not configured" };
+  }
+
+  if (!fromNumber) {
+    return { success: false, message: "TWILIO_PHONE_NUMBER is not configured" };
+  }
+
+  if (!recipient.startsWith("+")) {
+    return { success: false, message: "Twilio requires phone numbers in E.164 format" };
+  }
+
+  const body = new URLSearchParams({
+    To: recipient,
+    From: fromNumber,
+    Body: buildOtpMessage(otp)
+  });
+
+  const authHeader = Buffer.from(`${accountSid}:${authToken}`).toString("base64");
+  const response = await fetch(TWILIO_MESSAGES_ENDPOINT(accountSid), {
+    method: "POST",
+    headers: {
+      Authorization: `Basic ${authHeader}`,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: body.toString()
+  });
+
+  const rawBody = await response.text();
+  let data = null;
+
+  try {
+    data = rawBody ? JSON.parse(rawBody) : null;
+  } catch (error) {
+    data = rawBody;
+  }
+
+  if (!response.ok) {
+    const providerMessage =
+      data?.message ||
+      data?.code ||
+      (typeof data === "string" ? data : "Unknown Twilio error");
+
+    return {
+      success: false,
+      message: `Twilio SMS request failed (${response.status}): ${providerMessage}`
+    };
+  }
+
+  return {
+    success: true,
+    message: "OTP sent by SMS",
+    provider: "twilio",
+    messageId: data?.sid || null
+  };
+};
+
+async function sendOtpSms(phone, otp) {
+  if (!phone) {
+    return { success: false, message: "Phone number is required for SMS OTP delivery" };
+  }
+
+  if (SMS_MODE === "console") {
+    console.log(`[OTP][SMS][DEV] phone=${formatPhoneForLog(phone)} otp=${otp} (Valid for 5 minutes)`);
+    return { success: true, message: "OTP logged to console as SMS (dev mode)" };
+  }
+
+  if (SMS_MODE === "mock-failure") {
+    return { success: false, message: "Mock SMS provider failure" };
+  }
+
+  if (SMS_MODE === "brevo") {
+    return sendViaBrevo(phone, otp);
+  }
+
+  if (SMS_MODE === "twilio") {
+    return sendViaTwilio(phone, otp);
+  }
+
+  console.warn(`[OTP][SMS] Unsupported SMS_PROVIDER=${SMS_MODE}. Falling back to console logging.`);
+  console.log(`[OTP][SMS][FALLBACK] phone=${formatPhoneForLog(phone)} otp=${otp}`);
+  return { success: true, message: "OTP logged to console because SMS provider is not configured" };
+}
+
+async function verifyOtpCode(inputOtp, storedOtp) {
+  if (String(inputOtp) === String(storedOtp)) {
     return { success: true, message: "OTP verified" };
   }
-  return { success: false, message: "Invalid OTP" };
-};
 
-/**
- * Get Firebase Auth instance
- */
-exports.getFirebaseAuth = () => {
-  const { firebaseApp, admin } = require("../config/firebase");
-  if (!firebaseApp) {
-    console.warn("[Firebase] App not initialized");
-    return null;
-  }
-  return admin.auth();
+  return { success: false, message: "Invalid OTP" };
+}
+
+module.exports = {
+  sendOtpSms,
+  verifyOtpCode
 };

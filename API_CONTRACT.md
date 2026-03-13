@@ -50,7 +50,7 @@ This file is the source of truth for frontend integration and Postman/OpenAPI ge
 ## Auth Routes
 | Method | Path | Auth | Body (required) | Success |
 |---|---|---|---|---|
-| POST | `/api/auth/signup` | No | `name,email,password`, optional `role` | `200` |
+| POST | `/api/auth/signup` | No | `name,email,phone,password`, optional `role` | `200` |
 | POST | `/api/auth/login` | No | `email,password` | `200` (`data.user`, `data.accessToken`, `data.refreshToken`) |
 | POST | `/api/auth/verify-otp` | No | `email,otp` | `200` (`data.user`) |
 | POST | `/api/auth/resend-otp` | No | `email` | `200` |
