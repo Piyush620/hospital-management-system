@@ -50,11 +50,15 @@ This file is the source of truth for frontend integration and Postman/OpenAPI ge
 ## Auth Routes
 | Method | Path | Auth | Body (required) | Success |
 |---|---|---|---|---|
-| POST | `/api/auth/signup` | No | `name,email,phone,password`, optional `role` | `200` |
+| POST | `/api/auth/signup` | No | `name,email,phone,password,firebaseIdToken`, optional `role` | `200` (`data.user`) |
 | POST | `/api/auth/login` | No | `email,password` | `200` (`data.user`, `data.accessToken`, `data.refreshToken`) |
-| POST | `/api/auth/verify-otp` | No | `email,otp` | `200` (`data.user`) |
-| POST | `/api/auth/resend-otp` | No | `email` | `200` |
+| POST | `/api/auth/verify-otp` | No | legacy only | `410` |
+| POST | `/api/auth/resend-otp` | No | legacy only | `410` |
 | POST | `/api/auth/refresh-token` | No | `refreshToken` | `200` (`data.accessToken`) |
+
+Firebase note:
+- Phone OTP is now sent and verified in the frontend with Firebase Phone Authentication.
+- The backend creates the user only after validating the provided Firebase ID token with Firebase Admin SDK.
 
 ## Utility Protected Routes
 | Method | Path | Roles | Success |

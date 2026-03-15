@@ -2,14 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Field } from "../components/Field";
 import { ROLES } from "../lib/constants";
-import { authApi } from "../services/api";
-import { getErrorMessage } from "../lib/utils";
+import { setPendingSignup } from "../lib/storage";
 import { validateSignup } from "../lib/validation";
+import { authApi } from "../services/api";
 
 const initialForm = {
   name: "",
   email: "",
-  phone: "",
   password: "",
   role: ROLES.STAFF
 };
@@ -37,14 +36,14 @@ export function SignupPage() {
       return;
     }
 
-    setSubmitting(true);
-
     try {
+      setSubmitting(true);
       await authApi.signup(form);
-      setMessage("Account created. Use the OTP sent to your phone to verify.");
-      navigate("/verify-otp", { state: { email: form.email, phone: form.phone } });
+      setPendingSignup(form);
+      setMessage("Check your email for the OTP to verify your account.");
+      navigate("/verify-otp", { state: { signup: form } });
     } catch (submitError) {
-      setError(getErrorMessage(submitError));
+      setError(submitError?.message || "Unable to create account.");
     } finally {
       setSubmitting(false);
     }
@@ -53,19 +52,11 @@ export function SignupPage() {
   return (
     <div className="auth-card">
       <h2>Create account</h2>
-      <p>Start with signup, then verify the SMS OTP before logging in with your email.</p>
+      <p>Enter your details. You will receive an OTP on your email to verify your account.</p>
 
       <form className="auth-form" onSubmit={handleSubmit}>
         <Field label="Full Name" name="name" value={form.name} onChange={handleChange} required />
         <Field label="Email" name="email" value={form.email} onChange={handleChange} required />
-        <Field
-          label="Phone"
-          name="phone"
-          value={form.phone}
-          onChange={handleChange}
-          placeholder="+919876543210"
-          required
-        />
         <Field
           label="Password"
           name="password"
@@ -91,7 +82,7 @@ export function SignupPage() {
       </form>
 
       <div className="link-row">
-        <span>Already verified?</span>
+        <span>Already have an account?</span>
         <Link to="/login">Return to login</Link>
       </div>
     </div>

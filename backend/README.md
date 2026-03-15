@@ -1,10 +1,14 @@
 # Hospital Management Backend
 
-Backend API for hospital operations: authentication, hospitals, departments, doctors, patients, appointments, admissions, billing, payments, dashboard stats, and audit logs.
+Backend API for authentication, hospitals, departments, doctors, patients, appointments, admissions, billing, payments, dashboard stats, and audit logs.
 
 ## Prerequisites
 - Node.js 18+
 - MongoDB running locally, via Docker, or a remote URI
+- Firebase project with:
+  - Phone Authentication enabled
+  - a Web app configured for the frontend
+  - a service-account JSON key for the backend
 
 ## Local Setup
 ```bash
@@ -12,13 +16,26 @@ cd backend
 npm install
 ```
 
-Copy `.env.example` to `.env` and set:
+Set up `backend/.env`:
 - `MONGO_URI`
-- `TEST_MONGO_URI`
 - `JWT_ACCESS_SECRET`
 - `JWT_REFRESH_SECRET`
-- `OTP_EXPIRY`
-- optional: `BREVO_API_KEY`, `BREVO_FROM_EMAIL`
+- `CORS_ORIGIN`
+- `FIREBASE_CREDENTIALS_PATH`
+
+Example:
+```env
+PORT=5000
+NODE_ENV=development
+MONGO_URI=mongodb://localhost:27017/hms
+JWT_ACCESS_SECRET=replace_with_a_long_random_secret
+JWT_REFRESH_SECRET=replace_with_a_different_long_random_secret
+CORS_ORIGIN=http://localhost:3000
+FIREBASE_CREDENTIALS_PATH=firebase-key.json
+```
+
+Place your Firebase Admin service-account JSON at:
+- `backend/firebase-key.json`
 
 Start the backend:
 ```bash
@@ -38,7 +55,8 @@ docker compose down
 
 Services:
 - MongoDB: `localhost:27017`
-- Backend: `localhost:5000`
+- Backend API: `localhost:5000`
+- Frontend app: `localhost:3000`
 
 ## Testing
 Run from `backend/`:
@@ -49,11 +67,6 @@ npm run test:integration
 npm run test:reset-db
 npm run test:seed-db
 ```
-
-Current automated coverage includes:
-- validation tests
-- service regression tests
-- end-to-end workflow integration tests
 
 Default test DB:
 - `mongodb://127.0.0.1:27017/hms_integration_test`
@@ -67,30 +80,21 @@ Override with:
 - `GET /ready`
 - `GET /api/ready`
 
-## Main Workflow Order
-1. Hospital
-2. Department
-3. Doctor
-4. Patient
-5. Appointment
-6. Ward
-7. Room
-8. Bed
-9. Admission
-10. Billing
-11. Payment
-
-## Frontend Integration
-See:
-- [`FRONTEND_INTEGRATION.md`](./FRONTEND_INTEGRATION.md)
-
 ## Auth Flow
-1. `POST /api/auth/signup`
-2. `POST /api/auth/verify-otp`
-3. `POST /api/auth/login`
-4. `POST /api/auth/refresh-token`
+1. Frontend collects signup data
+2. Frontend sends phone OTP with Firebase Phone Authentication
+3. Frontend verifies the OTP with Firebase
+4. Frontend sends `firebaseIdToken` to `POST /api/auth/signup`
+5. User logs in with `POST /api/auth/login`
+6. Access tokens refresh with `POST /api/auth/refresh-token`
+
+Legacy endpoints:
+- `POST /api/auth/verify-otp` -> returns `410`
+- `POST /api/auth/resend-otp` -> returns `410`
 
 Protected routes use:
 - `Authorization: Bearer <accessToken>`
 
-If Brevo is not configured, OTP is logged in development output.
+## Frontend Integration
+See:
+- [`FRONTEND_INTEGRATION.md`](./FRONTEND_INTEGRATION.md)

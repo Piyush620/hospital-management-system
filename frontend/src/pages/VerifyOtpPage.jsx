@@ -1,25 +1,43 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Field } from "../components/Field";
+import { clearPendingSignup, getPendingSignup } from "../lib/storage";
 import { authApi } from "../services/api";
 import { getErrorMessage } from "../lib/utils";
-import { validateEmailOnly, validateOtp } from "../lib/validation";
+import { validateOtp } from "../lib/validation";
 
 export function VerifyOtpPage() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const signup = location.state?.signup || getPendingSignup();
   const [form, setForm] = useState({
-    email: location.state?.email || "",
+    email: signup?.email || "",
     otp: ""
   });
-  const phone = location.state?.phone || "";
-  const [error, setError] = useState("");
+  const [error, setError] = useState(signup ? "" : "Signup details were not found. Please start again from the signup page.");
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
+  };
+
+  // For email OTP, resend OTP via backend
+  const handleSendOtp = async () => {
+    setError("");
+    setMessage("");
+    try {
+      setSending(true);
+      await authApi.resendOtp({ email: form.email });
+      setMessage(`OTP sent to ${form.email}. Enter the code to finish signup.`);
+    } catch (submitError) {
+      setError(getErrorMessage(submitError));
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -34,10 +52,16 @@ export function VerifyOtpPage() {
     }
 
     setSubmitting(true);
-
     try {
-      await authApi.verifyOtp(form);
-      setMessage("Phone verified. You can log in now with email and password.");
+      await authApi.verifyOtp({ email: form.email, otp: form.otp });
+      clearPendingSignup();
+      setMessage("Account verified successfully. You can now log in.");
+      navigate("/login", {
+        replace: true,
+        state: {
+          message: "Account created successfully. You can now log in."
+        }
+      });
     } catch (submitError) {
       setError(getErrorMessage(submitError));
     } finally {
@@ -46,22 +70,9 @@ export function VerifyOtpPage() {
   };
 
   const handleResend = async () => {
-    setError("");
-    setMessage("");
-
-    const validationError = validateEmailOnly(form.email);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
-    setResending(true);
-
     try {
-      await authApi.resendOtp({ email: form.email });
-      setMessage("OTP resent to your phone successfully.");
-    } catch (submitError) {
-      setError(getErrorMessage(submitError));
+      setResending(true);
+      await handleSendOtp();
     } finally {
       setResending(false);
     }
@@ -70,26 +81,28 @@ export function VerifyOtpPage() {
   return (
     <div className="auth-card">
       <h2>Verify OTP</h2>
-      <p>Finish account activation with the OTP sent to your phone before attempting login.</p>
+      <p>You will receive an OTP on your email. After verification, your account will be created.</p>
 
       <form className="auth-form" onSubmit={handleSubmit}>
-        <Field label="Email" name="email" value={form.email} onChange={handleChange} required />
-        {phone ? <div className="inline-banner success">OTP destination: {phone}</div> : null}
+        <Field label="Email" name="email" value={form.email} onChange={handleChange} required disabled />
         <Field label="OTP" name="otp" value={form.otp} onChange={handleChange} required />
 
         {error ? <div className="inline-banner error">{error}</div> : null}
         {message ? <div className="inline-banner success">{message}</div> : null}
 
-        <button type="submit" className="btn btn-primary" disabled={submitting}>
-          {submitting ? "Verifying..." : "Verify"}
+        <button type="button" className="btn" onClick={handleSendOtp} disabled={sending || !signup}>
+          {sending ? "Sending..." : "Resend OTP"}
+        </button>
+        <button type="submit" className="btn btn-primary" disabled={submitting || !signup}>
+          {submitting ? "Verifying..." : "Verify and create account"}
         </button>
       </form>
 
       <div className="link-row">
-        <button type="button" className="link-button" onClick={handleResend} disabled={resending}>
+        <button type="button" className="link-button" onClick={handleResend} disabled={resending || !signup}>
           {resending ? "Resending..." : "Resend OTP"}
         </button>
-        <Link to="/login">Back to login</Link>
+        <Link to="/signup">Back to signup</Link>
       </div>
     </div>
   );

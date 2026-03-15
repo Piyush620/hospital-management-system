@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
 
   phone: {
     type: String,
-    required: true,
+    required: false,
     unique: true
   },
 
@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema(
     default: "STAFF"
   },
 
+  firebaseUid: {
+    type: String,
+    default: null
+  },
+
   otp: {
     type: String
   },
@@ -41,6 +46,10 @@ const userSchema = new mongoose.Schema(
   isVerified: {
     type: Boolean,
     default: false
+  },
+
+  phoneVerifiedAt: {
+    type: Date
   },
 
   isDeleted: {
