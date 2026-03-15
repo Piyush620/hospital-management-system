@@ -19,16 +19,12 @@ export function validateLogin(form) {
 }
 
 export function validateSignup(form) {
-  if (!form.name || !form.email || !form.phone || !form.password) {
-    return "Name, email, phone, and password are required.";
+  if (!form.name || !form.email || !form.password) {
+    return "Name, email, and password are required.";
   }
 
   if (!isEmail(form.email)) {
     return "Enter a valid email address.";
-  }
-
-  if (!isPhone(form.phone)) {
-    return "Enter a valid phone number in international format, for example +919876543210.";
   }
 
   if (String(form.password).length < 8) {

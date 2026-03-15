@@ -1,5 +1,6 @@
 const SESSION_KEY = "hms.frontend.session";
 const WORKSPACE_KEY = "hms.frontend.workspace";
+const PENDING_SIGNUP_KEY = "hms.frontend.pendingSignup";
 
 function safeParse(value, fallback) {
   try {
@@ -37,4 +38,16 @@ export function getStoredWorkspace() {
 
 export function setStoredWorkspace(workspace) {
   localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspace));
+}
+
+export function getPendingSignup() {
+  return safeParse(sessionStorage.getItem(PENDING_SIGNUP_KEY), null);
+}
+
+export function setPendingSignup(signup) {
+  sessionStorage.setItem(PENDING_SIGNUP_KEY, JSON.stringify(signup));
+}
+
+export function clearPendingSignup() {
+  sessionStorage.removeItem(PENDING_SIGNUP_KEY);
 }

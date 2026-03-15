@@ -16,3 +16,16 @@ exports.getStats = async (req, res, next) => {
   }
 
 };
+
+exports.getAdmissionsTrend = async (req, res, next) => {
+  try {
+    const trend = await dashboardService.getAdmissionsTrend();
+
+    res.json({
+      success: true,
+      data: trend
+    });
+  } catch (err) {
+    next(err);
+  }
+};

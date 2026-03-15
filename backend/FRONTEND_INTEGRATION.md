@@ -4,6 +4,7 @@
 - Backend base URL: `http://localhost:5000`
 - Protected routes require `Authorization: Bearer <accessToken>`
 - Primary API routes live under `/api/*`
+- Signup requires a Firebase-verified phone token from the frontend
 
 ## Response Contract
 - Prefer reading `response.data` in the frontend
@@ -11,7 +12,7 @@
 - Frontend code should treat `data` as the stable payload surface
 
 ## Core UI Workflow
-1. Signup with email + phone -> SMS OTP verification -> login with email
+1. Signup form -> Firebase phone OTP verification in frontend -> backend account creation -> login with email
 2. Create hospital
 3. Create department
 4. Create doctor
@@ -28,6 +29,7 @@
 - Treat `/api/ready` as the app startup health gate
 - Use list endpoints with query params for pagination/filtering
 - Prefer optimistic UI only after handling soft-delete behavior
+- Configure Firebase web SDK in `frontend/.env` and Firebase Admin credentials in `backend/.env`
 
 ## Test Data Support
 - Reset test data: `npm run test:reset-db`

@@ -17,6 +17,7 @@ export function LoginPage() {
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const successMessage = location.state?.message || "";
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -62,6 +63,7 @@ export function LoginPage() {
         />
 
         {error ? <div className="inline-banner error">{error}</div> : null}
+        {successMessage ? <div className="inline-banner success">{successMessage}</div> : null}
 
         <button type="submit" className="btn btn-primary" disabled={submitting}>
           {submitting ? "Signing in..." : "Login"}

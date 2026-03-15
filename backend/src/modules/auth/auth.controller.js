@@ -5,12 +5,12 @@ const { generateAccessToken } = require("../../utils/jwt");
 
 const signup = async (req, res, next) => {
   try {
-    const { name, email, phone, password, role } = req.body;
 
-    if (!name || !email || !phone || !password) {
+    const { name, email, phone, password, role } = req.body;
+    if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, phone, and password are required"
+        message: "Name, email, and password are required"
       });
     }
 
@@ -27,7 +27,9 @@ const signup = async (req, res, next) => {
     res.json({
       success: true,
       message: result.message,
-      data: null
+      data: {
+        user: result.user
+      }
     });
   } catch (err) {
     next(err);
@@ -54,14 +56,10 @@ const verifyOtp = async (req, res, next) => {
     const { email, otp } = req.body;
 
     const result = await authService.verifyOtp(email, otp);
-    const updatedUser = await User.findOne({ email });
-
     res.json({
       success: true,
       message: result.message,
-      data: {
-        user: authService.sanitizeUser(updatedUser)
-      }
+      data: null
     });
   } catch (err) {
     next(err);

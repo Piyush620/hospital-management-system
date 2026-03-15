@@ -72,7 +72,8 @@ export const admissionsApi = {
 export const billingsApi = createCrudApi("/api/billings", ["bills", "billings"]);
 export const paymentsApi = createCrudApi("/api/payments", ["payments"]);
 export const dashboardApi = {
-  stats: async () => extractData(await apiClient.request("/api/dashboard/stats"))
+  stats: async () => extractData(await apiClient.request("/api/dashboard/stats")),
+  admissionsTrend: async () => extractData(await apiClient.request("/api/dashboard/admissions-trend"))
 };
 export const auditApi = createCrudApi("/api/audit-logs", ["logs", "auditLogs"]);
 

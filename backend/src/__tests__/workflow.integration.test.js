@@ -10,11 +10,29 @@ process.env.RATE_LIMIT_MAX = "10000";
 process.env.AUTH_RATE_LIMIT_MAX = "10000";
 process.env.OTP_EXPIRY = "5";
 
+jest.mock("../config/firebase", () => ({
+  admin: {
+    auth: () => ({
+      verifyIdToken: jest.fn(async (token) => {
+        if (token === "test-firebase-token") {
+          return {
+            uid: "firebase-test-user",
+            phone_number: "+919876543210"
+          };
+        }
+
+        throw new Error("Invalid Firebase token");
+      })
+    })
+  },
+  firebaseConfigError: "",
+  isFirebaseConfigured: () => true
+}));
+
 const request = require("supertest");
 const mongoose = require("mongoose");
 
 const app = require("../app");
-const User = require("../models/user.model");
 const { connectTestDb, clearDatabase, disconnectTestDb } = require("../test-utils/db");
 
 jest.setTimeout(30000);
@@ -27,15 +45,19 @@ const createAuthorizedSession = async () => {
     role: "SUPER_ADMIN"
   });
 
+  // Get the OTP from the database
+  const User = require("../models/user.model");
   const user = await User.findOne({ email: "integration-admin@example.com" });
+  const otp = user.otp;
 
+  // Verify OTP
   await request(app).post("/api/auth/verify-otp").send({
-    email: user.email,
-    otp: user.otp
+    email: "integration-admin@example.com",
+    otp: otp
   });
 
   const loginResponse = await request(app).post("/api/auth/login").send({
-    email: user.email,
+    email: "integration-admin@example.com",
     password: "TestPass123!"
   });
 
